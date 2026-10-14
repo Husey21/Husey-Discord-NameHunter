@@ -1,0 +1,1658 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Discord Name Hunter</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0d12;
+    --surface: #13131a;
+    --surface2: #1a1a24;
+    --surface3: #22222f;
+    --border: #2a2a3d;
+    --border2: #363650;
+    --discord: #5865F2;
+    --discord-light: #7289ff;
+    --discord-glow: rgba(88,101,242,0.18);
+    --green: #23d18b;
+    --green-dim: rgba(35,209,139,0.12);
+    --red: #f04747;
+    --red-dim: rgba(240,71,71,0.12);
+    --yellow: #faa61a;
+    --yellow-dim: rgba(250,166,26,0.12);
+    --text: #e8e8f0;
+    --text2: #9898b0;
+    --text3: #5a5a72;
+    --mono: 'JetBrains Mono', monospace;
+    --sans: 'Space Grotesk', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--sans);
+    font-size: 14px;
+    line-height: 1.5;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+
+  .sidebar {
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  .main { display: flex; flex-direction: column; overflow: hidden; }
+
+  /* HEADER */
+  .header { padding: 20px 24px 16px; border-bottom: 1px solid var(--border); }
+
+  .logo { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+
+  .logo-icon {
+    width: 32px; height: 32px;
+    background: var(--discord);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px;
+  }
+
+  .logo-name { font-size: 16px; font-weight: 700; letter-spacing: -0.3px; color: var(--text); }
+  .logo-sub { font-size: 11px; color: var(--text3); font-family: var(--mono); }
+
+  /* SECTIONS */
+  .section { padding: 16px; border-bottom: 1px solid var(--border); }
+
+  .section-label {
+    font-size: 10px; font-weight: 600; letter-spacing: 0.08em;
+    color: var(--text3); text-transform: uppercase; margin-bottom: 12px;
+  }
+
+  .control-group { margin-bottom: 14px; }
+  .control-group:last-child { margin-bottom: 0; }
+
+  label { display: block; font-size: 12px; font-weight: 500; color: var(--text2); margin-bottom: 6px; }
+
+  /* LENGTH BUTTONS */
+  .length-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; }
+
+  .len-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text2); font-family: var(--mono);
+    font-size: 12px; font-weight: 500; padding: 7px 4px;
+    cursor: pointer; text-align: center; transition: all 0.12s; user-select: none;
+  }
+
+  .len-btn:hover { border-color: var(--discord); color: var(--text); }
+  .len-btn.active { background: var(--discord); border-color: var(--discord); color: #fff; box-shadow: 0 0 10px var(--discord-glow); }
+
+  /* CHARSET */
+  .charset-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+
+  .check-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .check-item input[type=checkbox] { display: none; }
+
+  .check-box {
+    width: 16px; height: 16px; border: 1px solid var(--border2);
+    border-radius: 4px; background: var(--surface2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0; transition: all 0.12s;
+  }
+
+  .check-item input:checked + .check-box { background: var(--discord); border-color: var(--discord); }
+  .check-item input:checked + .check-box::after {
+    content: '';
+    width: 8px; height: 5px;
+    border-left: 2px solid #fff; border-bottom: 2px solid #fff;
+    transform: rotate(-45deg) translate(1px, -1px); display: block;
+  }
+
+  .check-label { font-size: 12px; color: var(--text2); }
+
+  /* PRESETS */
+  .preset-grid { display: flex; flex-direction: column; gap: 4px; }
+
+  .preset-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text2); font-size: 11px; font-weight: 500;
+    padding: 7px 10px; cursor: pointer; text-align: left; transition: all 0.12s;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  .preset-btn:hover { border-color: var(--discord); color: var(--text); background: var(--surface3); }
+  .preset-btn.active { border-color: var(--discord); color: var(--discord-light); background: var(--discord-glow); }
+  .preset-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--discord); flex-shrink: 0; }
+
+  /* INPUTS */
+  .num-row { display: flex; gap: 8px; }
+
+  input[type=number], input[type=text] {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text); font-family: var(--mono);
+    font-size: 12px; padding: 7px 10px; width: 100%;
+    transition: border-color 0.12s; outline: none;
+  }
+
+  input[type=number]:focus, input[type=text]:focus { border-color: var(--discord); }
+  input[type=number] { -moz-appearance: textfield; }
+  input[type=number]::-webkit-outer-spin-button,
+  input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .num-label { font-size: 10px; color: var(--text3); margin-top: 4px; }
+
+  /* SPEED */
+  .speed-track { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+
+  .speed-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text2); font-size: 11px; font-weight: 500;
+    padding: 7px 4px; cursor: pointer; text-align: center; transition: all 0.12s;
+  }
+
+  .speed-btn:hover { border-color: var(--discord); color: var(--text); }
+  .speed-btn.active { background: var(--discord); border-color: var(--discord); color: #fff; }
+
+  /* CHECKER MODE */
+  .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+
+  .mode-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; color: var(--text2); font-size: 11px; font-weight: 500;
+    padding: 8px 6px; cursor: pointer; text-align: center; transition: all 0.12s;
+    line-height: 1.4;
+  }
+
+  .mode-btn:hover { border-color: var(--discord); color: var(--text); }
+  .mode-btn.active { border-color: var(--discord); color: var(--discord-light); background: var(--discord-glow); }
+  .mode-btn .mode-label { font-size: 10px; color: var(--text3); display: block; margin-top: 2px; }
+
+  /* API STATUS */
+  .api-status-bar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 6px;
+    background: var(--surface3); border: 1px solid var(--border);
+    margin-top: 8px; font-size: 11px; font-family: var(--mono);
+  }
+
+  .api-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); flex-shrink: 0; }
+  .api-dot.live { background: var(--green); box-shadow: 0 0 6px var(--green); }
+  .api-dot.proxy { background: var(--discord); box-shadow: 0 0 6px var(--discord); }
+  .api-dot.sim { background: var(--yellow); }
+
+  /* PROXY CONFIG */
+  .proxy-section { margin-top: 10px; }
+  .proxy-section.hidden { display: none; }
+
+  /* TOKEN CONFIG */
+  .token-section { margin-top: 10px; }
+  .token-section.hidden { display: none; }
+
+  /* WEBHOOK */
+  .webhook-toggle {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px;
+  }
+
+  .toggle { position: relative; width: 36px; height: 20px; cursor: pointer; }
+  .toggle input { display: none; }
+
+  .toggle-track {
+    position: absolute; inset: 0;
+    background: var(--surface3); border: 1px solid var(--border2);
+    border-radius: 10px; transition: all 0.2s;
+  }
+
+  .toggle-thumb {
+    position: absolute; top: 3px; left: 3px;
+    width: 12px; height: 12px; background: var(--text3);
+    border-radius: 50%; transition: all 0.2s;
+  }
+
+  .toggle input:checked ~ .toggle-track { background: var(--discord); border-color: var(--discord); }
+  .toggle input:checked ~ .toggle-thumb { left: 19px; background: #fff; }
+
+  .webhook-input-wrap { display: none; }
+  .webhook-input-wrap.visible { display: block; }
+  .webhook-note { font-size: 10px; color: var(--text3); margin-top: 6px; line-height: 1.4; font-family: var(--mono); }
+  .webhook-note a { color: var(--discord-light); text-decoration: none; }
+
+  /* ACTIONS */
+  .actions { padding: 16px; margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
+
+  .btn {
+    padding: 11px 16px; border-radius: 8px; border: none;
+    font-family: var(--sans); font-size: 13px; font-weight: 600;
+    cursor: pointer; transition: all 0.15s;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    letter-spacing: -0.1px;
+  }
+
+  .btn-primary { background: var(--discord); color: #fff; box-shadow: 0 0 20px rgba(88,101,242,0.3); }
+  .btn-primary:hover { background: var(--discord-light); box-shadow: 0 0 28px rgba(88,101,242,0.45); }
+  .btn-primary:active { transform: scale(0.98); }
+  .btn-primary:disabled { background: var(--surface3); color: var(--text3); box-shadow: none; cursor: not-allowed; }
+
+  .btn-secondary { background: var(--surface2); border: 1px solid var(--border2); color: var(--text2); }
+  .btn-secondary:hover { border-color: var(--discord); color: var(--text); }
+  .btn-secondary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-danger { background: var(--red-dim); border: 1px solid var(--red); color: var(--red); }
+  .btn-danger:hover { background: rgba(240,71,71,0.2); }
+
+  /* MAIN HEADER */
+  .main-header {
+    padding: 20px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap;
+  }
+
+  .stats-bar { display: flex; gap: 20px; flex-wrap: wrap; }
+
+  .stat { display: flex; flex-direction: column; gap: 2px; }
+  .stat-val { font-family: var(--mono); font-size: 20px; font-weight: 500; color: var(--text); line-height: 1; }
+  .stat-val.green { color: var(--green); }
+  .stat-val.discord { color: var(--discord-light); }
+
+  .stat-key { font-size: 10px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 500; }
+
+  .status-pill {
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 600; font-family: var(--mono);
+    border: 1px solid var(--border); background: var(--surface); color: var(--text3);
+  }
+
+  .status-pill.running { border-color: var(--discord); color: var(--discord-light); background: var(--discord-glow); }
+  .status-pill.done { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+  .status-pill.error { border-color: var(--red); color: var(--red); background: var(--red-dim); }
+
+  .pulse { width: 6px; height: 6px; border-radius: 50%; background: currentColor; animation: pulse 1s infinite; }
+
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  /* TOOLBAR */
+  .toolbar {
+    padding: 12px 24px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    background: var(--surface);
+  }
+
+  .filter-tabs {
+    display: flex; gap: 4px; border: 1px solid var(--border);
+    border-radius: 8px; padding: 3px; background: var(--bg);
+  }
+
+  .filter-tab {
+    padding: 5px 12px; border-radius: 5px; font-size: 11px; font-weight: 600;
+    cursor: pointer; transition: all 0.12s; color: var(--text3);
+    border: none; background: none; font-family: var(--sans);
+  }
+
+  .filter-tab.active { background: var(--surface2); color: var(--text); }
+  .filter-tab.green.active { background: var(--green-dim); color: var(--green); }
+
+  .search-input { width: 180px; margin-left: auto; }
+
+  .export-row { display: flex; gap: 6px; }
+
+  .btn-sm {
+    padding: 6px 12px; font-size: 11px; border-radius: 6px;
+    border: 1px solid var(--border2); background: var(--surface2);
+    color: var(--text2); cursor: pointer; font-family: var(--sans);
+    font-weight: 500; transition: all 0.12s; white-space: nowrap;
+  }
+
+  .btn-sm:hover { border-color: var(--discord); color: var(--text); }
+
+  /* RESULTS */
+  .results-wrap { flex: 1; overflow-y: auto; padding: 16px 24px; }
+
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+  }
+
+  .name-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 6px;
+    transition: border-color 0.12s; position: relative; overflow: hidden;
+  }
+
+  .name-card:hover { border-color: var(--border2); }
+  .name-card.hit { border-color: var(--green); background: linear-gradient(135deg, var(--surface) 0%, rgba(35,209,139,0.05) 100%); }
+  .name-card.taken { opacity: 0.45; }
+  .name-card.error { border-color: var(--yellow); }
+  .name-card.checking { border-color: var(--discord); animation: borderPulse 1s infinite; }
+
+  @keyframes borderPulse { 0%,100% { border-color: var(--discord); } 50% { border-color: var(--border); } }
+
+  .name-card-accent { position: absolute; top: 0; left: 0; right: 0; height: 2px; }
+  .name-card.hit .name-card-accent { background: var(--green); }
+  .name-card.error .name-card-accent { background: var(--yellow); }
+  .name-card.checking .name-card-accent { background: linear-gradient(90deg, var(--discord), var(--discord-light)); background-size: 200%; animation: shimmer 1s infinite; }
+
+  @keyframes shimmer { 0% { background-position: 0% 50%; } 100% { background-position: 200% 50%; } }
+
+  .name-val { font-family: var(--mono); font-size: 14px; font-weight: 500; color: var(--text); word-break: break-all; }
+  .name-card.hit .name-val { color: var(--green); }
+  .name-card.checking .name-val { color: var(--discord-light); }
+
+  .name-meta { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+
+  .name-status {
+    font-size: 10px; font-weight: 600; font-family: var(--mono);
+    padding: 2px 6px; border-radius: 4px;
+  }
+
+  .name-status.available { background: var(--green-dim); color: var(--green); }
+  .name-status.taken { background: var(--surface3); color: var(--text3); }
+  .name-status.error { background: var(--yellow-dim); color: var(--yellow); }
+  .name-status.pending { background: var(--discord-glow); color: var(--discord-light); }
+  .name-status.ratelimit { background: rgba(240,71,71,0.12); color: var(--red); }
+
+  .name-len { font-size: 10px; color: var(--text3); font-family: var(--mono); }
+
+  .copy-btn {
+    position: absolute; top: 8px; right: 8px;
+    width: 20px; height: 20px; background: var(--surface3);
+    border: 1px solid var(--border2); border-radius: 4px;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.12s; font-size: 10px; color: var(--text2);
+  }
+
+  .name-card:hover .copy-btn { opacity: 1; }
+  .copy-btn:hover { background: var(--discord); color: #fff; border-color: var(--discord); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; color: var(--text3); padding: 48px;
+  }
+
+  .empty-icon { font-size: 40px; opacity: 0.4; }
+  .empty-title { font-size: 16px; font-weight: 600; color: var(--text2); }
+  .empty-sub { font-size: 13px; text-align: center; max-width: 260px; line-height: 1.6; }
+
+  /* PROGRESS */
+  .progress-bar-wrap { padding: 0 24px 12px; }
+
+  .progress-bg { height: 3px; background: var(--surface2); border-radius: 2px; overflow: hidden; }
+
+  .progress-fill {
+    height: 100%; background: var(--discord); border-radius: 2px;
+    transition: width 0.3s ease; box-shadow: 0 0 8px var(--discord-glow); width: 0%;
+  }
+
+  /* LOG */
+  .log-panel {
+    background: var(--surface); border-top: 1px solid var(--border);
+    max-height: 140px; overflow-y: auto; padding: 10px 24px;
+    font-family: var(--mono); font-size: 11px; color: var(--text3);
+  }
+
+  .log-line { line-height: 1.8; }
+  .log-line.info { color: var(--text3); }
+  .log-line.success { color: var(--green); }
+  .log-line.error { color: var(--yellow); }
+  .log-line.discord { color: var(--discord-light); }
+  .log-line.ratelimit { color: var(--red); }
+
+  /* RATE LIMIT WARNING */
+  .rl-warning {
+    display: none; align-items: center; gap: 8px;
+    padding: 8px 12px; border-radius: 6px; margin: 8px 0;
+    background: var(--red-dim); border: 1px solid var(--red);
+    font-size: 11px; color: var(--red); font-family: var(--mono);
+  }
+  .rl-warning.visible { display: flex; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text3); }
+
+  /* MOBILE */
+  @media (max-width: 700px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; height: auto; }
+    .main { min-height: 60vh; }
+    .search-input { width: 100%; }
+  }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7); z-index: 100;
+    align-items: center; justify-content: center; padding: 24px;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal-box {
+    background: var(--surface); border: 1px solid var(--border2);
+    border-radius: 12px; max-width: 620px; width: 100%;
+    max-height: 85vh; overflow: auto; padding: 24px;
+  }
+
+  .modal-title {
+    font-size: 15px; font-weight: 700; margin-bottom: 16px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+
+  .modal-close {
+    background: none; border: none; color: var(--text2);
+    cursor: pointer; font-size: 20px; padding: 0 4px;
+  }
+
+  .modal-desc { font-size: 12px; color: var(--text2); margin-bottom: 12px; line-height: 1.6; }
+  .modal-desc a { color: var(--discord-light); text-decoration: none; }
+
+  .modal-code {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 8px; padding: 16px; font-size: 11px;
+    overflow-x: auto; color: var(--green); font-family: var(--mono);
+    line-height: 1.7; white-space: pre-wrap; max-height: 400px; overflow-y: auto;
+  }
+
+  .modal-steps {
+    margin-top: 12px; display: flex; flex-direction: column; gap: 6px;
+  }
+
+  .modal-step {
+    font-size: 11px; font-family: var(--mono); color: var(--text2);
+    padding: 6px 10px; background: var(--surface2); border-radius: 6px;
+    border-left: 2px solid var(--discord);
+  }
+
+  /* GITHUB PAGES WARNING */
+  .gh-warning {
+    margin-top: 8px; padding: 8px 10px; border-radius: 6px;
+    background: var(--yellow-dim); border: 1px solid var(--yellow);
+    font-size: 10px; color: var(--yellow); font-family: var(--mono);
+    line-height: 1.5;
+  }
+  .gh-warning.hidden { display: none; }
+
+  /* WEBHOOK STATUS */
+  .webhook-ok { background: var(--green-dim) !important; border-color: var(--green) !important; color: var(--green) !important; }
+  .webhook-err { background: var(--red-dim) !important; border-color: var(--red) !important; color: var(--red) !important; }
+
+  /* INFO TOOLTIP */
+  .info-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 14px; height: 14px; border-radius: 50%;
+    background: var(--surface3); border: 1px solid var(--border2);
+    color: var(--text3); font-size: 9px; font-family: var(--mono);
+    cursor: help; margin-left: 4px; vertical-align: middle;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="header">
+      <div class="logo">
+        <div class="logo-icon">🎯</div>
+        <div>
+          <div class="logo-name">Name Hunter</div>
+          <div class="logo-sub">Discord username finder</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CHECKER MODE -->
+    <div class="section">
+      <div class="section-label">Mode de vérification</div>
+      <div class="mode-grid">
+        <button class="mode-btn" data-mode="direct" id="mode-direct">
+          ⚡ Direct
+          <span class="mode-label">API Discord (local)</span>
+        </button>
+        <button class="mode-btn active" data-mode="proxy" id="mode-proxy">
+          🔄 Proxy
+          <span class="mode-label">Cloudflare Worker</span>
+        </button>
+      </div>
+
+      <div class="api-status-bar" id="api-status-bar">
+        <div class="api-dot" id="api-dot"></div>
+        <span id="api-status-text" style="color:var(--text3)">En attente de config…</span>
+      </div>
+
+      <!-- GITHUB PAGES WARNING — visible only in direct mode -->
+      <div class="gh-warning hidden" id="gh-warning">
+        ⚠ GitHub Pages bloque les requêtes vers Discord (CORS). Utilise le mode Proxy.
+      </div>
+
+      <!-- PROXY CONFIG — visible by default -->
+      <div class="proxy-section" id="proxy-section">
+        <div class="control-group" style="margin-top:8px">
+          <label>URL du Worker</label>
+          <input type="text" id="proxy-url" placeholder="https://xxxx.workers.dev/check">
+          <div class="num-label">Cloudflare Worker avec DISCORD_TOKEN en env var</div>
+        </div>
+        <button class="btn-sm" id="btn-test-proxy" style="margin-top:6px;width:100%">⚡ Tester la connexion</button>
+        <button class="btn-sm" id="btn-worker-code" style="margin-top:4px;width:100%">⬡ Voir le code Worker</button>
+      </div>
+    </div>
+
+    <!-- WEBHOOK -->
+    <div class="section" id="webhook-section">
+      <div class="section-label">Webhook Discord</div>
+      <div class="webhook-toggle">
+        <label style="margin:0;color:var(--text2)">Notifier les hits</label>
+        <label class="toggle">
+          <input type="checkbox" id="webhook-toggle">
+          <span class="toggle-track"></span>
+          <span class="toggle-thumb"></span>
+        </label>
+      </div>
+      <div class="webhook-input-wrap" id="webhook-wrap">
+        <input type="text" id="webhook-url" placeholder="https://discord.com/api/webhooks/...">
+        <div class="num-label" style="margin-top:6px">Testé avant le lancement du scan</div>
+        <button class="btn-sm" id="btn-test-webhook" style="margin-top:6px;width:100%">⚡ Tester le webhook</button>
+        <div id="webhook-status" style="display:none;margin-top:6px;font-size:10px;font-family:var(--mono);padding:6px 8px;border-radius:4px;border:1px solid var(--border)"></div>
+      </div>
+    </div>
+
+    <!-- LENGTH -->
+    <div class="section">
+      <div class="section-label">Longueur</div>
+      <div class="control-group">
+        <label>Nombre de caractères</label>
+        <div class="length-grid">
+          <button class="len-btn" data-len="2">2</button>
+          <button class="len-btn active" data-len="3">3</button>
+          <button class="len-btn active" data-len="4">4</button>
+          <button class="len-btn active" data-len="5">5</button>
+          <button class="len-btn" data-len="6">6</button>
+        </div>
+        <div class="num-label">3–5 = raretés. 6+ = plus de chances</div>
+      </div>
+    </div>
+
+    <!-- CHARSET -->
+    <div class="section">
+      <div class="section-label">Caractères</div>
+      <div class="control-group">
+        <div class="charset-grid">
+          <label class="check-item">
+            <input type="checkbox" id="ch-lower" checked>
+            <span class="check-box"></span>
+            <span class="check-label">a–z</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="ch-upper">
+            <span class="check-box"></span>
+            <span class="check-label">A–Z</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="ch-digits">
+            <span class="check-box"></span>
+            <span class="check-label">0–9</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="ch-under">
+            <span class="check-box"></span>
+            <span class="check-label">_</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="ch-dot">
+            <span class="check-box"></span>
+            <span class="check-label">.</span>
+          </label>
+          <label class="check-item">
+            <input type="checkbox" id="ch-leet">
+            <span class="check-box"></span>
+            <span class="check-label">l33t</span>
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <!-- PATTERNS -->
+    <div class="section">
+      <div class="section-label">Patterns</div>
+      <div class="preset-grid">
+        <button class="preset-btn active" data-preset="random"><span class="preset-dot"></span>Aléatoire pur</button>
+        <button class="preset-btn" data-preset="vowel-start"><span class="preset-dot"></span>Commence par voyelle</button>
+        <button class="preset-btn" data-preset="consonant-start"><span class="preset-dot"></span>Commence par consonne</button>
+        <button class="preset-btn" data-preset="pronounceable"><span class="preset-dot"></span>Prononçable (CVCV)</button>
+        <button class="preset-btn" data-preset="aesthetic"><span class="preset-dot"></span>Esthétique (e-girl)</button>
+        <button class="preset-btn" data-preset="gaming"><span class="preset-dot"></span>Gaming style</button>
+        <button class="preset-btn" data-preset="numeric-end"><span class="preset-dot"></span>Finit par chiffre</button>
+        <button class="preset-btn" data-preset="mirror"><span class="preset-dot"></span>Palindrome</button>
+      </div>
+    </div>
+
+    <!-- SPEED & BATCH -->
+    <div class="section">
+      <div class="section-label">Vitesse & Volume</div>
+      <div class="control-group">
+        <label>Délai entre requêtes</label>
+        <div class="speed-track">
+          <button class="speed-btn" data-speed="600">Rapide</button>
+          <button class="speed-btn active" data-speed="1200">Normal</button>
+          <button class="speed-btn" data-speed="2500">Safe</button>
+          <button class="speed-btn" data-speed="5000">Lent</button>
+        </div>
+        <div class="num-label">Rapide = risque de rate-limit Discord</div>
+      </div>
+      <div class="control-group">
+        <label>Noms à tester</label>
+        <input type="number" id="batch-size" value="50" min="1" max="500">
+        <div class="num-label">max 500 par session (rate-limit Discord)</div>
+      </div>
+      <div class="control-group">
+        <label>Préfixe forcé</label>
+        <input type="text" id="forced-prefix" placeholder="ex: xX, ._, ___">
+      </div>
+      <div class="control-group">
+        <label>Suffixe forcé</label>
+        <input type="text" id="forced-suffix" placeholder="ex: ._., 69, _v2">
+      </div>
+    </div>
+
+
+
+    <!-- ACTIONS -->
+    <div class="actions">
+      <button class="btn btn-primary" id="btn-start">▶ Lancer le scan</button>
+      <button class="btn btn-secondary" id="btn-pause" disabled>⏸ Pause</button>
+      <button class="btn btn-danger" id="btn-clear" disabled>✕ Effacer tout</button>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div class="main-header">
+      <div class="stats-bar">
+        <div class="stat">
+          <div class="stat-val discord" id="stat-generated">0</div>
+          <div class="stat-key">Générés</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-tested">0</div>
+          <div class="stat-key">Testés</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val green" id="stat-hits">0</div>
+          <div class="stat-key">Disponibles</div>
+        </div>
+        <div class="stat">
+          <div class="stat-val" id="stat-rl">0</div>
+          <div class="stat-key">Rate limits</div>
+        </div>
+      </div>
+      <div class="status-pill" id="status-pill">
+        <span class="pulse" id="status-pulse" style="display:none"></span>
+        <span id="status-text">Prêt</span>
+      </div>
+    </div>
+
+    <div class="progress-bar-wrap" id="progress-wrap" style="display:none">
+      <div class="progress-bg"><div class="progress-fill" id="progress-fill"></div></div>
+    </div>
+
+    <div class="toolbar">
+      <div class="filter-tabs">
+        <button class="filter-tab active" data-filter="all">Tous</button>
+        <button class="filter-tab green" data-filter="available">Disponibles</button>
+        <button class="filter-tab" data-filter="taken">Pris</button>
+        <button class="filter-tab" data-filter="error">Rate limit</button>
+      </div>
+      <input type="text" class="search-input" id="search-input" placeholder="Rechercher…">
+      <div class="export-row">
+        <button class="btn-sm" id="btn-export-csv">↓ CSV</button>
+        <button class="btn-sm" id="btn-export-json">↓ JSON</button>
+        <button class="btn-sm" id="btn-copy-hits">⎘ Hits</button>
+      </div>
+    </div>
+
+    <div class="results-wrap" id="results-wrap">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">🎯</div>
+        <div class="empty-title">Aucun résultat</div>
+        <div class="empty-sub">Configure les paramètres et lance le scan pour trouver des noms disponibles.</div>
+      </div>
+      <div class="results-grid" id="results-grid" style="display:none"></div>
+    </div>
+
+    <div class="log-panel" id="log-panel"></div>
+  </main>
+</div>
+
+<!-- WORKER CODE MODAL -->
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">
+      Cloudflare Worker — Proxy Discord
+      <button class="modal-close" id="modal-close">×</button>
+    </div>
+    <p class="modal-desc">
+      Déploie ce Worker sur <a href="https://workers.cloudflare.com/" target="_blank">Cloudflare Workers</a> (gratuit, 100k req/jour).
+      Ajoute ton token Discord dans les Variables d'environnement, puis entre l'URL du Worker dans l'onglet Proxy.
+    </p>
+    <div class="modal-steps">
+      <div class="modal-step">1. Crée un Worker sur workers.cloudflare.com</div>
+      <div class="modal-step">2. Colle ce code dans l'éditeur</div>
+      <div class="modal-step">3. Settings → Variables → ajoute DISCORD_TOKEN (ton user token)</div>
+      <div class="modal-step">4. Copie l'URL du Worker (ex: https://xxxx.workers.dev) → colle /check dans Name Hunter</div>
+    </div>
+    <pre class="modal-code" id="worker-code-pre"></pre>
+    <button class="btn btn-primary" id="modal-copy" style="margin-top:12px;width:100%">⎘ Copier le code</button>
+  </div>
+</div>
+
+<script>
+/* ─────────────────────────────────────────
+   CONSTANTS
+───────────────────────────────────────── */
+const DISCORD_CHECK_URL = 'https://discord.com/api/v9/unique-username/username-attempt-unauthed-v9a';
+const VOWELS = 'aeiou';
+const CONSONANTS = 'bcdfghjklmnpqrstvwxyz';
+const LEET_MAP = { a: '4', e: '3', i: '1', o: '0', s: '5', t: '7', l: '1', b: '8' };
+const AESTHETIC_CHARS = ['x', 'z', 'v', 'k', 'q', 'j', 'w', 'y', 'i', 'e', 'a'];
+
+const WORKER_CODE = `// Cloudflare Worker — Discord Username Checker Proxy
+// ─────────────────────────────────────────────────
+// Deploy: https://workers.cloudflare.com
+// Env var: DISCORD_TOKEN → ton user token Discord
+// Endpoint: GET /check?username=xyz
+
+export default {
+  async fetch(request, env) {
+    const cors = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+    };
+
+    if (request.method === 'OPTIONS')
+      return new Response(null, { headers: cors });
+
+    const url = new URL(request.url);
+    
+    if (url.pathname !== '/check')
+      return new Response('Name Hunter Worker — OK', { headers: cors });
+
+    const username = url.searchParams.get('username');
+    if (!username)
+      return new Response(JSON.stringify({ error: 'missing username' }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }, status: 400
+      });
+
+    // Validate before hitting Discord API
+    if (!/^[a-z0-9._]{2,32}$/.test(username))
+      return new Response(JSON.stringify({ username, available: false, reason: 'invalid_format' }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      });
+
+    try {
+      const res = await fetch(
+        'https://discord.com/api/v9/unique-username/username-attempt-unauthed-v9a',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': env.DISCORD_TOKEN || '',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            'X-Super-Properties': btoa(JSON.stringify({
+              os: 'Windows', browser: 'Chrome', release_channel: 'stable',
+              system_locale: 'fr-FR'
+            }))
+          },
+          body: JSON.stringify({ username })
+        }
+      );
+
+      if (res.status === 429) {
+        const retry = res.headers.get('retry-after') || '5';
+        return new Response(JSON.stringify({ rateLimited: true, retryAfter: parseInt(retry) }), {
+          headers: { ...cors, 'Content-Type': 'application/json' }, status: 429
+        });
+      }
+
+      if (!res.ok)
+        return new Response(JSON.stringify({ error: 'discord_error', status: res.status }), {
+          headers: { ...cors, 'Content-Type': 'application/json' }, status: res.status
+        });
+
+      const data = await res.json();
+      return new Response(JSON.stringify({ username, available: data.taken === false }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }
+      });
+
+    } catch (err) {
+      return new Response(JSON.stringify({ error: err.message }), {
+        headers: { ...cors, 'Content-Type': 'application/json' }, status: 500
+      });
+    }
+  }
+};`;
+
+/* ─────────────────────────────────────────
+   STATE
+───────────────────────────────────────── */
+const state = {
+  running: false,
+  paused: false,
+  speed: 1200,
+  batchSize: 50,
+  selectedLengths: [3, 4, 5],
+  charset: { lower: true, upper: false, digits: false, under: false, dot: false, leet: false },
+  preset: 'random',
+  results: [],
+  generated: 0,
+  tested: 0,
+  hits: 0,
+  rateLimits: 0,
+  startTime: null,
+  filter: 'all',
+  searchQuery: '',
+  webhookEnabled: false,
+  webhookUrl: '',
+  webhookValidated: false,
+  prefix: '',
+  suffix: '',
+  mode: 'proxy',        // 'direct' | 'proxy'
+  proxyUrl: '',
+  corsSupported: null,  // null=unknown, true=works, false=blocked
+};
+
+/* ─────────────────────────────────────────
+   API STATUS PROBE
+   Test if Discord endpoint accepts browser requests
+   (CORS policy changes between Discord deployments)
+───────────────────────────────────────── */
+async function probeDirectAPI() {
+  updateApiStatus('checking');
+  try {
+    const res = await fetch(DISCORD_CHECK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: 'probetestxyz123' }),
+      signal: AbortSignal.timeout(5000)
+    });
+    // If we get here without a CORS error, direct API works
+    if (res.status === 200 || res.status === 400 || res.status === 429) {
+      state.corsSupported = true;
+      updateApiStatus('live');
+      log('API Discord accessible directement — checker actif', 'discord');
+    } else {
+      state.corsSupported = false;
+      updateApiStatus('blocked');
+      log(`API Discord status ${res.status} — essaie le mode Proxy`, 'error');
+    }
+  } catch (err) {
+    // CORS error throws a TypeError in browsers
+    state.corsSupported = false;
+    updateApiStatus('blocked');
+    log('CORS bloqué — utilise le mode Proxy avec un Cloudflare Worker', 'error');
+  }
+}
+
+function updateApiStatus(mode) {
+  const dot = document.getElementById('api-dot');
+  const text = document.getElementById('api-status-text');
+  dot.className = 'api-dot';
+
+  if (mode === 'checking') {
+    text.textContent = 'Test de connectivité…';
+    text.style.color = 'var(--text3)';
+  } else if (mode === 'live') {
+    dot.classList.add('live');
+    text.textContent = 'API directe disponible ✓';
+    text.style.color = 'var(--green)';
+  } else if (mode === 'proxy') {
+    dot.classList.add('proxy');
+    text.textContent = 'Proxy configuré ✓';
+    text.style.color = 'var(--discord-light)';
+  } else if (mode === 'proxy-ok') {
+    dot.classList.add('proxy');
+    text.textContent = 'Proxy connecté ✓';
+    text.style.color = 'var(--discord-light)';
+  } else if (mode === 'blocked') {
+    text.textContent = 'CORS bloqué — Proxy requis';
+    text.style.color = 'var(--yellow)';
+  } else if (mode === 'sim') {
+    dot.classList.add('sim');
+    text.textContent = 'Mode simulation (pas de vérification réelle)';
+    text.style.color = 'var(--yellow)';
+  }
+}
+
+/* ─────────────────────────────────────────
+   CHARSET & NAME GENERATION
+───────────────────────────────────────── */
+function buildCharset() {
+  let chars = '';
+  if (state.charset.lower) chars += 'abcdefghijklmnopqrstuvwxyz';
+  if (state.charset.upper) chars += 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  if (state.charset.digits) chars += '0123456789';
+  if (state.charset.under) chars += '_';
+  if (state.charset.dot) chars += '.';
+  if (state.charset.leet) chars += '431057';
+  if (!chars) chars = 'abcdefghijklmnopqrstuvwxyz';
+  return chars;
+}
+
+function rand(str) { return str[Math.floor(Math.random() * str.length)]; }
+
+function generateName(len) {
+  const prefix = state.prefix;
+  const suffix = state.suffix;
+  const bodyLen = Math.max(1, len - prefix.length - suffix.length);
+  const chars = buildCharset();
+  let body = '';
+
+  switch (state.preset) {
+    case 'vowel-start':
+      body += rand(VOWELS);
+      for (let i = 1; i < bodyLen; i++) body += rand(chars);
+      break;
+    case 'consonant-start':
+      body += rand(CONSONANTS);
+      for (let i = 1; i < bodyLen; i++) body += rand(chars);
+      break;
+    case 'pronounceable':
+      for (let i = 0; i < bodyLen; i++)
+        body += i % 2 === 0 ? rand(CONSONANTS) : rand(VOWELS);
+      break;
+    case 'aesthetic':
+      for (let i = 0; i < bodyLen; i++) body += rand(AESTHETIC_CHARS);
+      break;
+    case 'gaming': {
+      for (let i = 0; i < bodyLen; i++) body += rand(chars);
+      if (state.charset.leet) body = body.split('').map(c => LEET_MAP[c] || c).join('');
+      break;
+    }
+    case 'numeric-end':
+      for (let i = 0; i < bodyLen - 1; i++) body += rand('abcdefghijklmnopqrstuvwxyz');
+      body += rand('0123456789');
+      break;
+    case 'mirror': {
+      const half = Math.ceil(bodyLen / 2);
+      const fwd = [];
+      for (let i = 0; i < half; i++) fwd.push(rand(chars));
+      const rev = [...fwd].reverse();
+      body = (fwd.join('') + rev.slice(bodyLen % 2 === 0 ? 0 : 1).join('')).slice(0, bodyLen);
+      break;
+    }
+    default:
+      for (let i = 0; i < bodyLen; i++) body += rand(chars);
+  }
+
+  return prefix + body + suffix;
+}
+
+function pickLength() {
+  const lens = state.selectedLengths;
+  if (!lens.length) return 4;
+  return lens[Math.floor(Math.random() * lens.length)];
+}
+
+/* ─────────────────────────────────────────
+   DISCORD USERNAME VALIDATION
+   Rules: 2–32 chars, lowercase alphanumeric + _ .
+   No consecutive . or _, no leading/trailing . or _
+───────────────────────────────────────── */
+function isValidDiscordName(name) {
+  if (!name || name.length < 2 || name.length > 32) return false;
+  // Discord normalizes to lowercase for pomelo usernames
+  const lower = name.toLowerCase();
+  if (/^[._]|[._]$/.test(lower)) return false;
+  if (/[._]{2}/.test(lower)) return false;
+  if (!/^[a-z0-9._]+$/.test(lower)) return false;
+  return true;
+}
+
+/* ─────────────────────────────────────────
+   REAL AVAILABILITY CHECK
+   
+   Method 1 (Direct): POST to Discord's unauthed pomelo endpoint
+   → Works IF Discord hasn't tightened CORS for this session
+   → Returns { taken: bool } on 200
+   → Returns 429 on rate-limit
+   
+   Method 2 (Proxy): GET /check?username=x via Cloudflare Worker
+   → Worker holds Discord token server-side
+   → No CORS restriction from Worker
+───────────────────────────────────────── */
+async function checkAvailability(username) {
+  const lower = username.toLowerCase();
+
+  if (state.mode === 'proxy' && state.proxyUrl) {
+    return await checkViaProxy(lower);
+  }
+
+  if (state.mode === 'direct' && state.corsSupported !== false) {
+    return await checkViaDirect(lower);
+  }
+
+  // No valid check method configured
+  return { status: 'unknown', reason: 'no_method' };
+}
+
+async function checkViaDirect(username) {
+  try {
+    const res = await fetch(DISCORD_CHECK_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+      },
+      body: JSON.stringify({ username }),
+      signal: AbortSignal.timeout(8000)
+    });
+
+    if (res.status === 429) {
+      const retryAfter = parseInt(res.headers.get('retry-after') || '5');
+      log(`⚠ Rate limit — attente ${retryAfter}s`, 'ratelimit');
+      await sleep(retryAfter * 1000);
+      return { status: 'ratelimit', retryAfter };
+    }
+
+    if (res.status === 200) {
+      const data = await res.json();
+      return { status: data.taken === false ? 'available' : 'taken' };
+    }
+
+    if (res.status === 400) {
+      return { status: 'taken' }; // username exists or invalid
+    }
+
+    return { status: 'error', httpStatus: res.status };
+
+  } catch (err) {
+    if (err.name === 'TypeError') {
+      // CORS block — update state
+      state.corsSupported = false;
+      updateApiStatus('blocked');
+      log('CORS bloqué par Discord — passe en mode Proxy', 'error');
+    }
+    return { status: 'error', reason: err.message };
+  }
+}
+
+async function checkViaProxy(username) {
+  try {
+    const url = state.proxyUrl.replace(/\/$/, '') + '?username=' + encodeURIComponent(username);
+    const res = await fetch(url, {
+      method: 'GET',
+      signal: AbortSignal.timeout(10000)
+    });
+
+    if (res.status === 429) {
+      const data = await res.json().catch(() => ({}));
+      const wait = (data.retryAfter || 5) * 1000;
+      log(`⚠ Rate limit proxy — attente ${data.retryAfter || 5}s`, 'ratelimit');
+      await sleep(wait);
+      return { status: 'ratelimit' };
+    }
+
+    if (!res.ok) return { status: 'error', httpStatus: res.status };
+
+    const data = await res.json();
+    if (data.rateLimited) return { status: 'ratelimit' };
+    return { status: data.available ? 'available' : 'taken' };
+
+  } catch (err) {
+    return { status: 'error', reason: err.message };
+  }
+}
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+/* ─────────────────────────────────────────
+   WEBHOOK
+   Discord webhooks accept POST from any origin — no CORS issue.
+───────────────────────────────────────── */
+function buildWebhookPayload(username) {
+  return JSON.stringify({
+    embeds: [{
+      title: '🎯 Username disponible',
+      description: `\`\`\`\n${username}\n\`\`\``,
+      color: 0x23d18b,
+      fields: [
+        { name: 'Longueur', value: `${username.length} chars`, inline: true },
+        { name: 'Copie rapide', value: `\`${username}\``, inline: true }
+      ],
+      timestamp: new Date().toISOString(),
+      footer: { text: 'Discord Name Hunter' }
+    }]
+  });
+}
+
+async function sendWebhook(username) {
+  if (!state.webhookEnabled || !state.webhookUrl) return;
+  try {
+    const res = await fetch(state.webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: buildWebhookPayload(username)
+    });
+    if (!res.ok) {
+      log(`Webhook erreur HTTP ${res.status} pour ${username}`, 'error');
+    }
+  } catch (err) {
+    log(`Webhook unreachable: ${err.message}`, 'error');
+  }
+}
+
+async function testWebhook() {
+  const url = state.webhookUrl;
+  const statusEl = document.getElementById('webhook-status');
+  if (!url) {
+    showWebhookStatus('Entre une URL webhook d\'abord.', 'err');
+    return;
+  }
+  document.getElementById('btn-test-webhook').textContent = 'Test…';
+  document.getElementById('btn-test-webhook').disabled = true;
+  showWebhookStatus('Envoi test…', '');
+
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        embeds: [{
+          title: '✓ Name Hunter — webhook opérationnel',
+          description: 'Le webhook recevra les usernames disponibles.',
+          color: 0x5865F2,
+          footer: { text: 'Discord Name Hunter — test' }
+        }]
+      }),
+      signal: AbortSignal.timeout(8000)
+    });
+
+    if (res.ok || res.status === 204) {
+      showWebhookStatus('✓ Webhook opérationnel — check ton salon Discord', 'ok');
+      log('Webhook testé avec succès ✓', 'success');
+      state.webhookValidated = true;
+    } else {
+      showWebhookStatus(`✗ Erreur HTTP ${res.status} — URL invalide?`, 'err');
+      state.webhookValidated = false;
+    }
+  } catch (err) {
+    showWebhookStatus(`✗ Injoignable: ${err.message}`, 'err');
+    state.webhookValidated = false;
+  }
+
+  document.getElementById('btn-test-webhook').textContent = '⚡ Tester le webhook';
+  document.getElementById('btn-test-webhook').disabled = false;
+}
+
+function showWebhookStatus(msg, type) {
+  const el = document.getElementById('webhook-status');
+  el.style.display = 'block';
+  el.textContent = msg;
+  el.className = type === 'ok' ? 'webhook-ok' : type === 'err' ? 'webhook-err' : '';
+}
+
+/* ─────────────────────────────────────────
+   MAIN SCAN LOOP
+───────────────────────────────────────── */
+async function runScan() {
+  // Validate check method before starting
+  if (state.mode === 'direct' && state.corsSupported === false) {
+    log('API directe bloquée. Configure un Proxy Cloudflare Worker.', 'error');
+    setStatus('error', 'CORS bloqué — Proxy requis');
+    return;
+  }
+
+  if (state.mode === 'proxy' && !state.proxyUrl) {
+    log('Mode Proxy sélectionné mais aucune URL configurée.', 'error');
+    setStatus('error', 'URL Proxy manquante');
+    return;
+  }
+
+  if (state.selectedLengths.length === 0) {
+    log('Sélectionne au moins une longueur.', 'error');
+    return;
+  }
+
+  // Validate webhook BEFORE starting if enabled and not already validated
+  if (state.webhookEnabled && state.webhookUrl && !state.webhookValidated) {
+    log('Validation du webhook avant le scan…', 'discord');
+    setStatus('running', 'Test webhook…');
+    document.getElementById('btn-start').disabled = true;
+    await testWebhook();
+    if (!state.webhookValidated) {
+      log('Webhook invalide. Corrige l\'URL ou désactive le webhook pour continuer.', 'error');
+      setStatus('error', 'Webhook invalide');
+      document.getElementById('btn-start').disabled = false;
+      return;
+    }
+    log('Webhook validé — lancement du scan', 'success');
+  }
+
+  state.running = true;
+  state.paused = false;
+  state.startTime = Date.now();
+  state.generated = 0;
+  state.tested = 0;
+  state.hits = 0;
+  state.rateLimits = 0;
+
+  const total = parseInt(document.getElementById('batch-size').value) || 50;
+  setStatus('running', 'Scan en cours…');
+
+  document.getElementById('progress-wrap').style.display = 'block';
+  document.getElementById('btn-start').disabled = true;
+  document.getElementById('btn-pause').disabled = false;
+  document.getElementById('btn-clear').disabled = false;
+
+  log(`Scan démarré — ${total} noms, mode ${state.mode}, délai ${state.speed}ms`, 'discord');
+
+  const seen = new Set();
+  let consecutiveErrors = 0;
+
+  for (let i = 0; i < total; i++) {
+    if (!state.running) break;
+    while (state.paused) await sleep(200);
+
+    // Abort on too many consecutive errors (proxy down, token invalid, etc.)
+    if (consecutiveErrors >= 5) {
+      log('5 erreurs consécutives — scan arrêté. Vérifie ta config.', 'error');
+      setStatus('error', 'Trop d\'erreurs');
+      break;
+    }
+
+    // Generate unique valid name
+    let name, attempts = 0;
+    do {
+      const len = pickLength();
+      name = generateName(len);
+      attempts++;
+      if (attempts > 100) { name = null; break; }
+    } while (seen.has(name) || !isValidDiscordName(name));
+
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    state.generated++;
+    updateStat('stat-generated', state.generated);
+
+    // Add pending card
+    const pendingResult = { name, status: 'checking' };
+    state.results.push(pendingResult);
+    renderResults();
+
+    // Real availability check
+    const result = await checkAvailability(name);
+    const idx = state.results.indexOf(pendingResult);
+
+    if (result.status === 'available') {
+      state.results[idx] = { name, status: 'available' };
+      state.hits++;
+      updateStat('stat-hits', state.hits);
+      log(`✓ DISPONIBLE → ${name}`, 'success');
+      await sendWebhook(name);
+      consecutiveErrors = 0;
+
+    } else if (result.status === 'taken') {
+      state.results[idx] = { name, status: 'taken' };
+      consecutiveErrors = 0;
+
+    } else if (result.status === 'ratelimit') {
+      state.results[idx] = { name, status: 'error' };
+      state.rateLimits++;
+      updateStat('stat-rl', state.rateLimits);
+      // Don't count toward batch since we didn't get a real answer
+      i--;
+
+    } else {
+      state.results[idx] = { name, status: 'error' };
+      consecutiveErrors++;
+      log(`✗ Erreur: ${result.reason || result.httpStatus || 'unknown'} → ${name}`, 'error');
+    }
+
+    state.tested++;
+    updateStat('stat-tested', state.tested);
+    renderResults();
+
+    document.getElementById('progress-fill').style.width = ((i + 1) / total * 100) + '%';
+
+    // Delay between requests
+    await sleep(state.speed + Math.random() * state.speed * 0.3);
+  }
+
+  state.running = false;
+  setStatus('done', `Terminé — ${state.hits} hits / ${state.tested} testés`);
+  document.getElementById('btn-start').disabled = false;
+  document.getElementById('btn-pause').disabled = true;
+  log(`Scan terminé. ${state.hits} disponibles / ${state.tested} testés / ${state.rateLimits} rate-limits.`, 'discord');
+}
+
+/* ─────────────────────────────────────────
+   RESULTS RENDERING
+───────────────────────────────────────── */
+function renderResults() {
+  const grid = document.getElementById('results-grid');
+  const empty = document.getElementById('empty-state');
+
+  let filtered = state.results;
+
+  if (state.filter === 'available') filtered = filtered.filter(r => r.status === 'available');
+  else if (state.filter === 'taken') filtered = filtered.filter(r => r.status === 'taken');
+  else if (state.filter === 'error') filtered = filtered.filter(r => r.status === 'error' || r.status === 'ratelimit');
+
+  if (state.searchQuery) {
+    const q = state.searchQuery.toLowerCase();
+    filtered = filtered.filter(r => r.name.toLowerCase().includes(q));
+  }
+
+  if (filtered.length === 0) {
+    grid.style.display = 'none';
+    empty.style.display = 'flex';
+    return;
+  }
+
+  empty.style.display = 'none';
+  grid.style.display = 'grid';
+
+  const visible = filtered.slice(-600);
+
+  grid.innerHTML = visible.map(r => {
+    const cls = r.status === 'available' ? 'hit' : r.status === 'taken' ? 'taken' : r.status === 'checking' ? 'checking' : 'error';
+    const label = r.status === 'available' ? '✓ dispo' : r.status === 'taken' ? 'pris' : r.status === 'checking' ? '...' : 'rl';
+    const statusCls = r.status === 'available' ? 'available' : r.status === 'taken' ? 'taken' : r.status === 'checking' ? 'pending' : 'ratelimit';
+    return `<div class="name-card ${cls}">
+      <div class="name-card-accent"></div>
+      <div class="name-val">${escHtml(r.name)}</div>
+      <div class="name-meta">
+        <span class="name-status ${statusCls}">${label}</span>
+        <span class="name-len">${r.name.length}c</span>
+      </div>
+      ${r.status !== 'checking' ? `<button class="copy-btn" onclick="copyName('${escHtml(r.name)}')">⎘</button>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function escHtml(s) {
+  return s.replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
+function copyName(name) {
+  navigator.clipboard.writeText(name).catch(() => {});
+}
+
+/* ─────────────────────────────────────────
+   UI HELPERS
+───────────────────────────────────────── */
+function setStatus(type, text) {
+  const pill = document.getElementById('status-pill');
+  const pulse = document.getElementById('status-pulse');
+  const label = document.getElementById('status-text');
+  pill.className = 'status-pill ' + type;
+  label.textContent = text;
+  pulse.style.display = type === 'running' ? 'block' : 'none';
+}
+
+function updateStat(id, val) {
+  document.getElementById(id).textContent = val;
+}
+
+function log(msg, type = 'info') {
+  const panel = document.getElementById('log-panel');
+  const line = document.createElement('div');
+  const ts = new Date().toLocaleTimeString('fr-FR', { hour12: false });
+  line.className = `log-line ${type}`;
+  line.textContent = `[${ts}] ${msg}`;
+  panel.appendChild(line);
+  panel.scrollTop = panel.scrollHeight;
+  while (panel.children.length > 300) panel.removeChild(panel.firstChild);
+}
+
+/* ─────────────────────────────────────────
+   EXPORTS
+───────────────────────────────────────── */
+function exportCSV() {
+  const rows = [['name', 'status', 'length']];
+  for (const r of state.results) rows.push([r.name, r.status, r.name.length]);
+  download('discord-names.csv', rows.map(r => r.join(',')).join('\n'), 'text/csv');
+}
+
+function exportJSON() {
+  download('discord-names.json', JSON.stringify(state.results.filter(r => r.status !== 'checking'), null, 2), 'application/json');
+}
+
+function copyHits() {
+  const hits = state.results.filter(r => r.status === 'available').map(r => r.name).join('\n');
+  if (!hits) return;
+  navigator.clipboard.writeText(hits).then(() => log('Hits copiés dans le presse-papier', 'discord'));
+}
+
+function download(filename, content, type) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([content], { type }));
+  a.download = filename;
+  a.click();
+}
+
+/* ─────────────────────────────────────────
+   PROXY TEST
+───────────────────────────────────────── */
+async function testProxy() {
+  const url = state.proxyUrl;
+  if (!url) { log('Entre une URL de Worker d\'abord.', 'error'); return; }
+
+  log('Test de connexion au proxy…', 'discord');
+  document.getElementById('btn-test-proxy').textContent = 'Test…';
+  document.getElementById('btn-test-proxy').disabled = true;
+
+  try {
+    const res = await fetch(url.replace(/\/$/, '') + '?username=testprobe', {
+      signal: AbortSignal.timeout(8000)
+    });
+    if (res.ok || res.status === 429) {
+      updateApiStatus('proxy-ok');
+      log('Proxy opérationnel ✓', 'success');
+    } else {
+      log(`Proxy erreur HTTP ${res.status}`, 'error');
+    }
+  } catch (err) {
+    log(`Proxy injoignable: ${err.message}`, 'error');
+  }
+
+  document.getElementById('btn-test-proxy').textContent = 'Tester la connexion';
+  document.getElementById('btn-test-proxy').disabled = false;
+}
+
+/* ─────────────────────────────────────────
+   EVENT LISTENERS
+───────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
+
+  // Mode buttons
+  document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.mode = btn.dataset.mode;
+
+      const proxySection = document.getElementById('proxy-section');
+      const ghWarning = document.getElementById('gh-warning');
+
+      if (state.mode === 'proxy') {
+        proxySection.classList.remove('hidden');
+        ghWarning.classList.add('hidden');
+        if (state.proxyUrl) updateApiStatus('proxy');
+        else updateApiStatus('checking');
+      } else {
+        // Direct mode — warn about GitHub Pages CORS
+        proxySection.classList.add('hidden');
+        ghWarning.classList.remove('hidden');
+        if (state.corsSupported === null) {
+          probeDirectAPI();
+        } else if (state.corsSupported) {
+          updateApiStatus('live');
+        } else {
+          updateApiStatus('blocked');
+        }
+      }
+    });
+  });
+
+  // Proxy URL
+  document.getElementById('proxy-url').addEventListener('input', e => {
+    state.proxyUrl = e.target.value.trim();
+    if (state.proxyUrl && state.mode === 'proxy') {
+      updateApiStatus('proxy');
+    } else {
+      updateApiStatus('checking');
+    }
+  });
+
+  // Test proxy
+  document.getElementById('btn-test-proxy').addEventListener('click', testProxy);
+
+  // Length buttons
+  document.querySelectorAll('.len-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const len = parseInt(btn.dataset.len);
+      btn.classList.toggle('active');
+      if (btn.classList.contains('active')) {
+        if (!state.selectedLengths.includes(len)) state.selectedLengths.push(len);
+      } else {
+        state.selectedLengths = state.selectedLengths.filter(l => l !== len);
+      }
+    });
+  });
+
+  // Charset checkboxes
+  ['lower', 'upper', 'digits', 'under', 'dot', 'leet'].forEach(key => {
+    document.getElementById(`ch-${key}`).addEventListener('change', e => {
+      state.charset[key] = e.target.checked;
+    });
+  });
+
+  // Presets
+  document.querySelectorAll('.preset-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.preset-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.preset = btn.dataset.preset;
+    });
+  });
+
+  // Speed
+  document.querySelectorAll('.speed-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state.speed = parseInt(btn.dataset.speed);
+    });
+  });
+
+  // Prefix / suffix
+  document.getElementById('forced-prefix').addEventListener('input', e => { state.prefix = e.target.value; });
+  document.getElementById('forced-suffix').addEventListener('input', e => { state.suffix = e.target.value; });
+
+  // Webhook
+  document.getElementById('webhook-toggle').addEventListener('change', e => {
+    state.webhookEnabled = e.target.checked;
+    document.getElementById('webhook-wrap').classList.toggle('visible', e.target.checked);
+    if (!e.target.checked) {
+      state.webhookValidated = false;
+      document.getElementById('webhook-status').style.display = 'none';
+    }
+  });
+  document.getElementById('webhook-url').addEventListener('input', e => {
+    state.webhookUrl = e.target.value.trim();
+    // Reset validation when URL changes
+    state.webhookValidated = false;
+    document.getElementById('webhook-status').style.display = 'none';
+  });
+  document.getElementById('btn-test-webhook').addEventListener('click', testWebhook);
+
+  // Filter tabs
+  document.querySelectorAll('.filter-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      state.filter = tab.dataset.filter;
+      renderResults();
+    });
+  });
+
+  // Search
+  document.getElementById('search-input').addEventListener('input', e => {
+    state.searchQuery = e.target.value;
+    renderResults();
+  });
+
+  // Start / Pause / Clear
+  document.getElementById('btn-start').addEventListener('click', () => runScan());
+
+  document.getElementById('btn-pause').addEventListener('click', () => {
+    state.paused = !state.paused;
+    document.getElementById('btn-pause').textContent = state.paused ? '▶ Reprendre' : '⏸ Pause';
+    if (state.paused) setStatus('running', 'En pause…');
+    else setStatus('running', 'Scan en cours…');
+  });
+
+  document.getElementById('btn-clear').addEventListener('click', () => {
+    state.running = false;
+    state.results = [];
+    state.generated = 0; state.tested = 0; state.hits = 0; state.rateLimits = 0;
+    ['stat-generated', 'stat-tested', 'stat-hits', 'stat-rl'].forEach(id => updateStat(id, 0));
+    document.getElementById('progress-fill').style.width = '0%';
+    document.getElementById('progress-wrap').style.display = 'none';
+    document.getElementById('log-panel').innerHTML = '';
+    setStatus('', 'Prêt');
+    document.getElementById('btn-start').disabled = false;
+    document.getElementById('btn-pause').disabled = true;
+    document.getElementById('btn-clear').disabled = true;
+    document.getElementById('btn-pause').textContent = '⏸ Pause';
+    renderResults();
+  });
+
+  // Exports
+  document.getElementById('btn-export-csv').addEventListener('click', exportCSV);
+  document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+  document.getElementById('btn-copy-hits').addEventListener('click', copyHits);
+
+  // Worker modal
+  document.getElementById('btn-worker-code').addEventListener('click', () => {
+    document.getElementById('worker-code-pre').textContent = WORKER_CODE;
+    document.getElementById('modal-overlay').classList.add('open');
+  });
+  document.getElementById('modal-close').addEventListener('click', () => {
+    document.getElementById('modal-overlay').classList.remove('open');
+  });
+  document.getElementById('modal-copy').addEventListener('click', () => {
+    navigator.clipboard.writeText(WORKER_CODE).then(() => {
+      document.getElementById('modal-copy').textContent = '✓ Copié';
+      setTimeout(() => { document.getElementById('modal-copy').textContent = '⎘ Copier le code'; }, 2000);
+    });
+  });
+  document.getElementById('modal-overlay').addEventListener('click', e => {
+    if (e.target === document.getElementById('modal-overlay'))
+      document.getElementById('modal-overlay').classList.remove('open');
+  });
+
+  // Default mode is proxy — no auto-probe on load
+  log('Name Hunter v3 initialisé. Configure ton Proxy Worker et lance le scan.', 'discord');
+  updateApiStatus('checking');
+});
+</script>
+</body>
+</html>
